@@ -1,9 +1,8 @@
 # This Python file uses the following encoding: utf-8
 import sys
-import random
 import pulsectl
 from PySide6.QtWidgets import QApplication, QMainWindow
-from PySide6 import QtCore, QtWidgets, QtGui
+from PySide6 import QtCore, QtWidgets
 
 # Important:
 # You need to run the following command to generate the ui_form.py file
