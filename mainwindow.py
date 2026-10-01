@@ -26,10 +26,10 @@ class MyWidget(QtWidgets.QWidget):
 
           if appname != None and appname not in self.dict:
                   self.dict[appname] = []
+          if appname != None:
+            self.dict[appname].append(x.index)
 
-          self.dict[appname].append(x.index)
-
-          if appname not in self.label:
+          if appname != None and appname not in self.label:
               self.label.append(appname)
               button = QtWidgets.QPushButton(" Sink Name: " + appname)
               button.clicked.connect(lambda checked=False, name=appname: self.magic(name))
