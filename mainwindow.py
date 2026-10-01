@@ -17,17 +17,25 @@ class MyWidget(QtWidgets.QWidget):
         self.selected = ""
         list = self.list_procs()
         self.layout = QtWidgets.QGridLayout(self)
-        dict = [""]
+
+        self.dict = {}
+        self.label = []
         #preciso buscar todos as sinks que tem application.name igual e agrupar
         for x in list:
-          print(x.name)
           appname = x.proplist.get("application.name")
-          if appname != None and not dict.__contains__(appname):
-              dict.append(appname)
+
+          if appname != None and appname not in self.dict:
+                  self.dict[appname] = []
+
+          self.dict[appname].append(x.index)
+
+          if appname not in self.label:
+              self.label.append(appname)
               button = QtWidgets.QPushButton(" Sink Name: " + appname)
-              button.clicked.connect(lambda checked=False, name=x.index: self.magic(name))
+              button.clicked.connect(lambda checked=False, name=appname: self.magic(name))
               self.layout.addWidget(button)
 
+        print(self.dict)
         button = QtWidgets.QPushButton("Unload virtual input")
         button.clicked.connect(self.unload)
         self.layout.addWidget(button)
@@ -35,16 +43,20 @@ class MyWidget(QtWidgets.QWidget):
 
     @QtCore.Slot()
     def magic(self, sink_index):
-        self.text = QtWidgets.QLabel(str(sink_index))
-        self.layout.addWidget(self.text)
+        proccesses = ""
         default_sink = self.pulse.sink_default_get()
         print(default_sink.name)
         self.pulse.module_load("module-null-sink", "sink_name=Virtual_Sink")
         self.pulse.module_load("module-combine-sink", f"slaves={default_sink.name},Virtual_Sink sink_name=Combined_Shared_Sink sink_properties=device.description=Combined_Process_Sink")
 
         sink_combined = self.pulse.get_sink_by_name("Combined_Shared_Sink")
+        for x in self.dict[sink_index]:
+            print("sink_id: " + str(x) + " added")
+            proccesses += str(x) + ","
+            self.pulse.sink_input_move(x, sink_combined.index)
 
-        self.pulse.sink_input_move(sink_index, sink_combined.index)
+        self.text = QtWidgets.QLabel(proccesses + " Added.")
+        self.layout.addWidget(self.text)
         self.pulse.default_set(default_sink)
 
     def unload(self):
