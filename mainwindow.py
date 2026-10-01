@@ -18,11 +18,11 @@ class MyWidget(QtWidgets.QWidget):
         list = self.list_procs()
         self.layout = QtWidgets.QGridLayout(self)
         dict = [""]
-
+        #preciso buscar todos as sinks que tem application.name igual e agrupar
         for x in list:
           print(x.name)
-          appname = x.proplist["application.name"]
-          if not dict.__contains__(appname):
+          appname = x.proplist.get("application.name")
+          if appname != None and not dict.__contains__(appname):
               dict.append(appname)
               button = QtWidgets.QPushButton(" Sink Name: " + appname)
               button.clicked.connect(lambda checked=False, name=x.index: self.magic(name))
