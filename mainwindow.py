@@ -14,14 +14,19 @@ class MyWidget(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         self.pulse = pulsectl.Pulse('my-client-name')
+        self.selected = ""
         list = self.list_procs()
         self.layout = QtWidgets.QGridLayout(self)
+        dict = [""]
 
         for x in list:
           print(x.name)
-          button = QtWidgets.QPushButton("Sink ID: " + str(x.index) + "\n" + " Sink Name: " + x.name)
-          button.clicked.connect(lambda checked=False, name=x.index: self.magic(name))
-          self.layout.addWidget(button)
+          appname = x.proplist["application.name"]
+          if not dict.__contains__(appname):
+              dict.append(appname)
+              button = QtWidgets.QPushButton(" Sink Name: " + appname)
+              button.clicked.connect(lambda checked=False, name=x.index: self.magic(name))
+              self.layout.addWidget(button)
 
         button = QtWidgets.QPushButton("Unload virtual input")
         button.clicked.connect(self.unload)
@@ -30,6 +35,8 @@ class MyWidget(QtWidgets.QWidget):
 
     @QtCore.Slot()
     def magic(self, sink_index):
+        self.text = QtWidgets.QLabel(str(sink_index))
+        self.layout.addWidget(self.text)
         default_sink = self.pulse.sink_default_get()
         print(default_sink.name)
         self.pulse.module_load("module-null-sink", "sink_name=Virtual_Sink")
@@ -39,7 +46,6 @@ class MyWidget(QtWidgets.QWidget):
 
         self.pulse.sink_input_move(sink_index, sink_combined.index)
         self.pulse.default_set(default_sink)
-        #self.pulse.sink_input_move(sink_index, sink.index)
 
     def unload(self):
         sink = self.pulse.get_sink_by_name("Virtual_Sink")

@@ -40,7 +40,7 @@ qml_files =
 excluded_qml_plugins = 
 
 # qt modules used. comma separatedrm -rf ./.rm -rf ./.steam/steam/steamapps/compatdata/3513350/steam/steam/steamapps/compatdata/3513350/
-modules = Core,DBus,Gui,Widgets,pulsectl,random
+modules = Core,DBus,Gui,Widgets,pulsectl
 
 # qt plugins used by the application. only relevant for desktop deployment
 # for qt plugins used in android application see [android][plugins]
