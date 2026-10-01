@@ -20,6 +20,7 @@ class MyWidget(QtWidgets.QWidget):
 
         self.dict = {}
         self.label = []
+        content = QtWidgets.QGridLayout()
         #preciso buscar todos as sinks que tem application.name igual e agrupar
         for x in list:
           appname = x.proplist.get("application.name")
@@ -33,12 +34,19 @@ class MyWidget(QtWidgets.QWidget):
               self.label.append(appname)
               button = QtWidgets.QPushButton(" Sink Name: " + appname)
               button.clicked.connect(lambda checked=False, name=appname: self.magic(name))
-              self.layout.addWidget(button)
+              content.addWidget(button)
 
-        print(self.dict)
         button = QtWidgets.QPushButton("Unload virtual input")
         button.clicked.connect(self.unload)
+
+        main_widget = QtWidgets.QWidget()
+        main_widget.setLayout(content)
+        self.scroll = QtWidgets.QScrollArea()
+        self.scroll.setWidgetResizable(True)
+
+        self.layout.addWidget(main_widget)
         self.layout.addWidget(button)
+        self.layout.addWidget(self.scroll)
 
 
     @QtCore.Slot()
@@ -56,14 +64,25 @@ class MyWidget(QtWidgets.QWidget):
             self.pulse.sink_input_move(x, sink_combined.index)
 
         self.text = QtWidgets.QLabel(proccesses + " Added.")
-        self.layout.addWidget(self.text)
+        self.scroll.setWidget(self.text)
         self.pulse.default_set(default_sink)
 
     def unload(self):
-        sink = self.pulse.get_sink_by_name("Virtual_Sink")
-        sink_combined = self.pulse.get_sink_by_name("Combined_Shared_Sink")
-        self.pulse.module_unload(sink.owner_module)
-        self.pulse.module_unload(sink_combined.owner_module)
+        try:
+                sink = self.pulse.get_sink_by_name("Virtual_Sink")
+                sink_combined = self.pulse.get_sink_by_name("Combined_Shared_Sink")
+        except Exception:
+                sink = None
+                sink_combined = None
+
+        if sink is not None and sink_combined is not None:
+                self.pulse.module_unload(sink.owner_module)
+                self.pulse.module_unload(sink_combined.owner_module)
+                self.text = QtWidgets.QLabel("Virtual sinks removed")
+                self.scroll.setWidget(self.text)
+        else:
+                self.text = QtWidgets.QLabel("Non-existing virtual sink")
+                self.scroll.setWidget(self.text)
 
     #lista processos
     def list_procs(self):        
@@ -80,5 +99,8 @@ class MainWindow(QMainWindow):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     widget = MyWidget()
+    with open("style.qss", "r") as f:
+            _style = f.read()
+            widget.setStyleSheet(_style)
     widget.show()
     sys.exit(app.exec())
