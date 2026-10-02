@@ -66,9 +66,9 @@ macos.permissions =
 
 # mode of using nuitka. accepts standalone or onefile. default = onefile
 mode = onefile
+extra_args = --quiet --noinclude-qt-translation --include-data-files=style.qss=style.qss
 
 # specify any extra nuitka arguments
-extra_args = --quiet --noinclude-qt-translations
 
 [buildozer]
 

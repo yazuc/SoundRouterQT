@@ -54,7 +54,7 @@ class MyWidget(QtWidgets.QWidget):
         proccesses = ""
         default_sink = self.pulse.sink_default_get()
         print(default_sink.name)
-        self.pulse.module_load("module-null-sink", "sink_name=Virtual_Sink")
+        self.pulse.module_load("module-null-sink", f"sink_name=Virtual_Sink sink_properties=device.description={sink_index}_virtualized" )
         self.pulse.module_load("module-combine-sink", f"slaves={default_sink.name},Virtual_Sink sink_name=Combined_Shared_Sink sink_properties=device.description=Combined_Process_Sink")
 
         sink_combined = self.pulse.get_sink_by_name("Combined_Shared_Sink")
@@ -63,7 +63,7 @@ class MyWidget(QtWidgets.QWidget):
             proccesses += str(x) + ","
             self.pulse.sink_input_move(x, sink_combined.index)
 
-        self.text = QtWidgets.QLabel(proccesses + " Added.")
+        self.text = QtWidgets.QLabel(proccesses + f" Added into {sink_index}_virtualized")
         self.scroll.setWidget(self.text)
         self.pulse.default_set(default_sink)
 
@@ -99,8 +99,6 @@ class MainWindow(QMainWindow):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     widget = MyWidget()
-    with open("style.qss", "r") as f:
-            _style = f.read()
-            widget.setStyleSheet(_style)
+    widget.setStyleSheet("QLabel {background-color: #FFFFFF;qproperty-alignment: AlignCenter;}QPushButton { background-color: #2ABf9E;padding: 20px;font-size: 18px;}")
     widget.show()
     sys.exit(app.exec())
