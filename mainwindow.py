@@ -68,21 +68,24 @@ class MyWidget(QtWidgets.QWidget):
         self.pulse.default_set(default_sink)
 
     def unload(self):
-        try:
-                sink = self.pulse.get_sink_by_name("Virtual_Sink")
-                sink_combined = self.pulse.get_sink_by_name("Combined_Shared_Sink")
-        except Exception:
-                sink = None
-                sink_combined = None
+        virtual_exists = True
+        while virtual_exists:
+                try:
+                        sink = self.pulse.get_sink_by_name("Virtual_Sink")
+                        sink_combined = self.pulse.get_sink_by_name("Combined_Shared_Sink")
+                except Exception:
+                        virtual_exists = False
+                        sink = None
+                        sink_combined = None
 
-        if sink is not None and sink_combined is not None:
-                self.pulse.module_unload(sink.owner_module)
-                self.pulse.module_unload(sink_combined.owner_module)
-                self.text = QtWidgets.QLabel("Virtual sinks removed")
-                self.scroll.setWidget(self.text)
-        else:
-                self.text = QtWidgets.QLabel("Non-existing virtual sink")
-                self.scroll.setWidget(self.text)
+                if sink is not None and sink_combined is not None:
+                        self.pulse.module_unload(sink.owner_module)
+                        self.pulse.module_unload(sink_combined.owner_module)
+                        self.text = QtWidgets.QLabel("Virtual sinks removed")
+                        self.scroll.setWidget(self.text)
+                else:
+                        self.text = QtWidgets.QLabel("Non-existing virtual sink")
+                        self.scroll.setWidget(self.text)
 
     #lista processos
     def list_procs(self):        
