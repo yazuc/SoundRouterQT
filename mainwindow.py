@@ -66,6 +66,13 @@ class MyWidget(QtWidgets.QWidget):
         self.pulse.module_load("module-null-sink", f"sink_name=Virtual_Sink sink_properties=device.description={sink_index}_virtualized" )
         self.pulse.module_load("module-combine-sink", f"slaves={default_sink.name},Virtual_Sink sink_name=Combined_Shared_Sink sink_properties=device.description=Combined_Process_Sink")
 
+        #self.pulse.module_load(
+        #        "module-remap-source",
+        #        f"master=Virtual_Sink.monitor "
+        #        f"source_name={sink_index}_mic "
+        #        f"source_properties=device.description={sink_index}_mic"
+        #    )
+
         sink_combined = self.pulse.get_sink_by_name("Combined_Shared_Sink")
         for x in self.dict[sink_index]:
             print("sink_id: " + str(x) + " added")
@@ -85,8 +92,7 @@ class MyWidget(QtWidgets.QWidget):
                 except Exception:
                         virtual_exists = False
                         sink = None
-                        sink_combined = None
-                        break
+                        sink_combined = None                        
 
                 if sink is not None and sink_combined is not None:
                         self.pulse.module_unload(sink.owner_module)
