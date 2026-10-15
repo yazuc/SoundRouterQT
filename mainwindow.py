@@ -1,6 +1,7 @@
 # This Python file uses the following encoding: utf-8
 import sys
 import pulsectl
+import subprocess
 from PySide6.QtWidgets import QApplication, QMainWindow
 from PySide6 import QtCore, QtWidgets
 
@@ -57,21 +58,27 @@ class MyWidget(QtWidgets.QWidget):
             self.layout.addWidget(main_widget, 0, 0)
             self.layout.addWidget(self.scroll, 1, 0)
             self.layout.addLayout(layout_button, 2, 0)
+            self.input = QtWidgets.QLineEdit()
+            self.input.setPlaceholderText("Session ID: (default kDAQd6S)")
+            self.layout.addWidget(self.input)
 
     @QtCore.Slot()
     def magic(self, sink_index):
+        self.unload()
+        self.set_stream_restore(False)
         proccesses = ""
         default_sink = self.pulse.sink_default_get()
         print(default_sink.name)
+        nameStored = default_sink.name
         self.pulse.module_load("module-null-sink", f"sink_name=Virtual_Sink sink_properties=device.description={sink_index}_virtualized" )
-        self.pulse.module_load("module-combine-sink", f"slaves={default_sink.name},Virtual_Sink sink_name=Combined_Shared_Sink sink_properties=device.description=Combined_Process_Sink")
+        self.pulse.module_load("module-combine-sink", f"slaves={default_sink.name},Virtual_Sink sink_name=Combined_Shared_Sink")
 
-        #self.pulse.module_load(
-        #        "module-remap-source",
-        #        f"master=Virtual_Sink.monitor "
-        #        f"source_name={sink_index}_mic "
-        #        f"source_properties=device.description={sink_index}_mic"
-        #    )
+        self.pulse.module_load(
+                "module-remap-source",
+                f"source_name=Virtual_mic "
+                f"master=Virtual_Sink.monitor "
+                f"source_properties=device.description={sink_index}_mic"
+            )
 
         sink_combined = self.pulse.get_sink_by_name("Combined_Shared_Sink")
         for x in self.dict[sink_index]:
@@ -81,22 +88,54 @@ class MyWidget(QtWidgets.QWidget):
 
         self.text = QtWidgets.QLabel(proccesses + f" Added into {sink_index}_virtualized")
         self.scroll.setWidget(self.text)
-        self.pulse.default_set(default_sink)
+        physical_sink = self.pulse.get_sink_by_name(nameStored)
+        self.pulse.default_set(physical_sink)
+        text = self.input.text()
+
+        if text == "":
+                text = "kDAQd6S"
+
+        subprocess.Popen([
+            "elecap",
+            "--enable-features=UseOzonePlatform,WebRTCPipeWireCapturer",
+            "--ozone-platform=wayland",
+            "--node", "1",
+            "--url",
+            f"https://vdo.ninja/?push={text}&ss=1&autostart&ad={sink_index}_mic",
+        ])
+
+    def set_stream_restore(self, restore_device: bool):
+        modules = self.pulse.module_list()
+
+        module = next(
+         (m for m in modules if m.name == "module-stream-restore"),
+         None
+         )
+
+        if module is not None:
+           self.pulse.module_unload(module.index)
+
+        args = f"restore_device={'true' if restore_device else 'false'}"
+        self.pulse.module_load("module-stream-restore", args)
 
     def unload(self):
+        self.set_stream_restore(True)
         virtual_exists = True
         while virtual_exists:
                 try:
                         sink = self.pulse.get_sink_by_name("Virtual_Sink")
                         sink_combined = self.pulse.get_sink_by_name("Combined_Shared_Sink")
+                        mic = self.pulse.get_source_by_name("Virtual_mic")
                 except Exception:
                         virtual_exists = False
                         sink = None
-                        sink_combined = None                        
+                        sink_combined = None
+                        mic = None
 
                 if sink is not None and sink_combined is not None:
                         self.pulse.module_unload(sink.owner_module)
                         self.pulse.module_unload(sink_combined.owner_module)
+                        self.pulse.module_unload(mic.owner_module)
                         self.text = QtWidgets.QLabel("Virtual sinks removed.")
                         self.scroll.setWidget(self.text)
                 else:
