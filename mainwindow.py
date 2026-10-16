@@ -94,14 +94,13 @@ class MyWidget(QtWidgets.QWidget):
 
         if text == "":
                 text = "kDAQd6S"
-
         subprocess.Popen([
             "elecap",
             "--enable-features=UseOzonePlatform,WebRTCPipeWireCapturer",
             "--ozone-platform=wayland",
             "--node", "1",
             "--url",
-            f"https://vdo.ninja/?push={text}&ss=1&autostart&ad={sink_index}_mic",
+            f"https://vdo.ninja/?push={text}&screenshare&screensharevideoonly&audiodevice={sink_index}_mic",
         ])
 
     def set_stream_restore(self, restore_device: bool):
