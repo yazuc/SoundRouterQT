@@ -94,14 +94,18 @@ class MyWidget(QtWidgets.QWidget):
 
         if text == "":
                 text = "kDAQd6S"
-        subprocess.Popen([
-            "elecap",
-            "--enable-features=UseOzonePlatform,WebRTCPipeWireCapturer",
-            "--ozone-platform=wayland",
-            "--node", "1",
-            "--url",
-            f"https://vdo.ninja/?push={text}&screenshare&screensharevideoonly&audiodevice={sink_index}_mic",
-        ])
+
+        out = subprocess.run(["pgrep", "-f", "/usr/lib/elecap/app.asar"], capture_output=True)
+
+        if out.stdout.decode('utf-8').strip() == "":
+                subprocess.Popen([
+                    "elecap",
+                    "--enable-features=UseOzonePlatform,WebRTCPipeWireCapturer",
+                    "--ozone-platform=wayland",
+                    "--node", "1",
+                    "--url",
+                    f"https://vdo.ninja/alpha/?push={text}&screenshare&screenaudio=0&autostart&audiodevice={sink_index}_mic",
+                ])
 
     def set_stream_restore(self, restore_device: bool):
         modules = self.pulse.module_list()
