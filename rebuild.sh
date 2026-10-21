@@ -1,0 +1,1 @@
+./.qtcreator/Python_3_14_7venv/bin/pyside6-deploy ./mainwindow.py --extra-modules pulsectl
