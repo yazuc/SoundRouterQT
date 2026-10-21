@@ -104,7 +104,7 @@ class MyWidget(QtWidgets.QWidget):
                     "--ozone-platform=wayland",
                     "--node", "1",
                     "--url",
-                    f"https://vdo.ninja/alpha/?push={text}&screenshare&screenaudio=0&autostart&audiodevice={sink_index}_mic",
+                    f"https://yazuc.github.io/vdo.ninja/?push={text}&screenshare&screenaudio=0&autostart&audiodevice={sink_index}_mic",
                 ])
 
     def set_stream_restore(self, restore_device: bool):
